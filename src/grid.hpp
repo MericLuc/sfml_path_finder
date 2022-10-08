@@ -15,6 +15,8 @@
 
 class Cell : public sf::RectangleShape
 {
+    friend class Grid;
+
 public:
     enum State
     {
@@ -22,15 +24,21 @@ public:
         WALL = 1 << 1,
         START_CELL = 1 << 2,
         END_CELL = 1 << 3,
-        OCCUPIED = 1 << 4,
-        SELECTED = 1 << 5
+        PATH = 1 << 4,    // Cell belongs to the path
+        SELECTED = 1 << 5 // under cursor
     };
 
-    Cell() noexcept;
-    virtual ~Cell() noexcept;
+    Cell() noexcept = default;
+    virtual ~Cell() noexcept = default;
 
+    bool hasState(int st) const noexcept { return _state & st; }
     int  getState(void) const noexcept { return _state; }
-    void setState(int st) noexcept;
+    void setState(int st) noexcept { _state = st; }
+    void addState(State st) noexcept { _state |= st; }
+    void remState(State st) noexcept { _state ^= st; }
+
+protected:
+    void update(void) noexcept;
 
 private:
     int _state{ EMPTY };
@@ -41,7 +49,7 @@ class Grid : public sf::Drawable
 {
 public:
     Grid(size_t width = 50, size_t height = 50) noexcept;
-    virtual ~Grid() noexcept;
+    virtual ~Grid() noexcept = default;
 
     virtual void clean(void) noexcept;
     virtual void resize(size_t width, size_t height) noexcept;

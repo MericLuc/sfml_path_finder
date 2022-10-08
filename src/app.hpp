@@ -16,6 +16,7 @@ class RectangleShape;
 }
 
 class Grid;
+class Cell;
 
 /*****************************************************************************/
 class App
@@ -29,13 +30,12 @@ public:
     virtual void render(void) noexcept;
 
 protected:
-    void _handleEvts() noexcept;
-    void _handleMouse() noexcept;
-
-protected:
     std::unique_ptr<sf::RenderWindow> _window;
     std::unique_ptr<Grid>             _grid;
-    std::pair<int, int>               _mouse;
+
+    Cell* _cell_start{ nullptr };
+    Cell* _cell_end{ nullptr };
+    Cell* _cell_cur{ nullptr };
 
 private:
     App(const App&) noexcept = delete;

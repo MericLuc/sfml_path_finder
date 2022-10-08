@@ -15,30 +15,25 @@
 using namespace sf;
 
 /*****************************************************************************/
-Cell::Cell() noexcept
-  : RectangleShape()
-{
-    setState(_state);
-}
-
-/*****************************************************************************/
-Cell::~Cell() noexcept
-{
-    // TODO
-}
-
-/*****************************************************************************/
 void
-Cell::setState(int st) noexcept
+Cell::update(void) noexcept
 {
-    _state = st;
+    setOutlineColor(Color::Black);
+    setOutlineThickness(-1.f);
 
     if (EMPTY == _state) {
         setFillColor(Color(200, 200, 200, 250));
-        setOutlineColor(Color::Black);
-        setOutlineThickness(-1.f);
         return;
     }
+
+    if (_state & (START_CELL | END_CELL))
+        setFillColor(Color(234, 24, 24));
+
+    if (_state & WALL)
+        setFillColor(Color::Black);
+
+    if (_state & PATH)
+        setFillColor(Color(32, 32, 228));
 
     if (_state & SELECTED) {
         setOutlineColor(Color::Green);
@@ -52,12 +47,6 @@ Grid::Grid(size_t width, size_t height) noexcept
   , _height{ height }
   , _grid{ _height * _width, Cell() }
 {}
-
-/*****************************************************************************/
-Grid::~Grid() noexcept
-{
-    // TODO
-}
 
 /*****************************************************************************/
 void
@@ -87,6 +76,7 @@ Grid::draw(sf::RenderTarget& target, sf::RenderStates states) const
         for (size_t j{ 0 }; j < _height; ++j) {
             auto& cell{ _grid[i + j * _width] };
 
+            cell.update();
             cell.setSize(Vector2f(cell_width, cell_height));
             cell.setPosition(Vector2f(cell_width * i, cell_height * j));
 

@@ -1,0 +1,9 @@
+# Configuration settings
+
+- Keys/Controls bindings
+- Map size (rows/cols)
+- Window settings
+- Styles (cells, grid...)
+- Frame Rate
+
+# Actual A* algorithm
