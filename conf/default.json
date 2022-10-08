@@ -1,0 +1,28 @@
+{
+	"bindings": {
+		"clean": "Esc",
+		"analyze": "Enter"
+	},
+	"graphics": {
+		"width": 600,
+		"height": 600,
+		"frame-rate": 200
+	},
+	"grid": {
+		"dimensions": {
+			"rows": 50,
+			"cols": 50 
+		},
+		"style": {
+			"empty": {},
+			"wall": {},
+			"start": {},
+			"end": {},
+			"selected": {}
+		}
+	},
+	"path-finding": {
+		"heuristic": "euclidian",
+		"params": {}
+	}
+}
