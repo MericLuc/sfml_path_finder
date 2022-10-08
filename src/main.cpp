@@ -4,16 +4,43 @@
  * @author lhm
  */
 
-#include <app.hpp>
+// Standard headers
+#include <iostream>
 #include <stdlib.h>
 
-#include <SFML/Graphics.hpp>
+// Project headers
+#include <app.hpp>
+#include <utils/CmdLineParser.hpp>
+
+/*****************************************************************************/
+static void
+help(void)
+{
+    std::cout << PROG_NAME << " : Path finder toy (SFML discover)\n\n"
+              << "Usage: " << PROG_NAME << " [-opt val]\n"
+              << "Options: \n\t" << CMDLINE_HELP << " : Display the help\n"
+              << "\n\t" << CMDLINE_CONF << " filename : Set configuration file\n\n";
+}
+
+static const std::string default_conf{ "/etc/" PROG_NAME };
 
 /*****************************************************************************/
 int
-main()
+main(int argc, char* argv[])
 {
     auto& app{ App::get() };
+    auto  parser{ std::make_unique<CmdLineParser>(argc, argv) };
+
+    if (parser->cmdOptionExists(CMDLINE_HELP)) {
+        help();
+        return EXIT_SUCCESS;
+    }
+
+    if (!app.configure(parser->cmdOptionExists(CMDLINE_CONF) ? parser->getCmdOption(CMDLINE_CONF)
+                                                             : default_conf)) {
+        std::cerr << app.what() << '\n';
+        return EXIT_FAILURE;
+    }
 
     // TODO - Add frameRate
     while (app) {

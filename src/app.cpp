@@ -5,15 +5,18 @@
  */
 
 // Standard headers
+#include <filesystem>
 
 // Project headers
 #include <app.hpp>
 #include <grid.hpp>
 
 // External libs
+#include <JSON.hpp>
 #include <SFML/Graphics.hpp>
 
 using namespace sf;
+namespace fs = std::filesystem;
 
 constexpr int WINDOW_DEFAULT_HEIGHT{ 640 };
 constexpr int WINDOW_DEFAULT_WIDTH{ 640 };
@@ -30,6 +33,27 @@ App::get(void) noexcept
 App::operator bool() noexcept
 {
     return _window->isOpen();
+}
+
+/*****************************************************************************/
+bool
+App::configure(const std::string_view& file) noexcept
+{
+    fs::path conf_path{ file };
+
+    if (std::empty(file)) {
+        _what = "Missing or empty file path";
+        return false;
+    }
+
+    if (!fs::exists(conf_path)) {
+        _what = "Input file does not exist";
+        return false;
+    }
+
+    JSON::Object obj{ JSON::Object::fromFile(conf_path) };
+    // TODO
+    return true;
 }
 
 /*****************************************************************************/

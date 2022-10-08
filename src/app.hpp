@@ -9,6 +9,8 @@
 
 // Standard headers
 #include <memory>
+#include <string>
+#include <string_view>
 
 namespace sf {
 class RenderWindow;
@@ -26,8 +28,11 @@ public:
 
     operator bool() noexcept;
 
-    virtual void update(void) noexcept;
-    virtual void render(void) noexcept;
+    [[maybe_unused]] virtual bool configure(const std::string_view& file) noexcept;
+    virtual void                  update(void) noexcept;
+    virtual void                  render(void) noexcept;
+
+    std::string what(void) const noexcept { return _what; }
 
 protected:
     std::unique_ptr<sf::RenderWindow> _window;
@@ -36,6 +41,8 @@ protected:
     Cell* _cell_start{ nullptr };
     Cell* _cell_end{ nullptr };
     Cell* _cell_cur{ nullptr };
+
+    std::string _what;
 
 private:
     App(const App&) noexcept = delete;
