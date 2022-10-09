@@ -13,6 +13,7 @@
 // External headers
 #include <SFML/Graphics.hpp>
 
+namespace ui {
 class Cell : public sf::RectangleShape
 {
     friend class Grid;
@@ -68,5 +69,7 @@ private:
     size_t                    _width, _height;
     mutable std::vector<Cell> _grid;
 };
+
+}
 
 #endif // SRC_GRID_HPP

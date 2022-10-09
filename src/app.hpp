@@ -1,6 +1,6 @@
 /**
  * @file app.hpp
- * @brief App isa singleton containing the application logic
+ * @brief App is a singleton containing the application logic
  * @author lhm
  */
 
@@ -8,6 +8,8 @@
 #define SRC_APP_HPP
 
 // Standard headers
+#include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -15,14 +17,34 @@
 namespace sf {
 class RenderWindow;
 class RectangleShape;
+struct KeyEvent;
 }
 
+namespace JSON {
+class Object;
+}
+
+namespace ui {
 class Grid;
 class Cell;
+}
+
+namespace AStar {
+class Impl;
+}
 
 /*****************************************************************************/
 class App
 {
+public:
+    typedef enum
+    {
+        CLEAN,
+        ANALYZE,
+        STOP
+    } ACTION;
+    using ActionFunction = std::function<void(void)>;
+
 public:
     static App& get(void) noexcept;
 
@@ -35,14 +57,25 @@ public:
     std::string what(void) const noexcept { return _what; }
 
 protected:
-    std::unique_ptr<sf::RenderWindow> _window;
-    std::unique_ptr<Grid>             _grid;
+    void _clean(void) noexcept;
+    void _analyze(void) noexcept;
+    void _stop(void) noexcept;
 
-    Cell* _cell_start{ nullptr };
-    Cell* _cell_end{ nullptr };
-    Cell* _cell_cur{ nullptr };
+    bool _initGraphics(const JSON::Object&) noexcept;
+    bool _initBindings(const JSON::Object&) noexcept;
+
+protected:
+    std::unique_ptr<sf::RenderWindow> _window;
+    std::unique_ptr<ui::Grid>         _grid;
+    std::unique_ptr<AStar::Impl>      _algo;
+
+    ui::Cell* _cell_start{ nullptr };
+    ui::Cell* _cell_end{ nullptr };
+    ui::Cell* _cell_cur{ nullptr };
 
     std::string _what;
+
+    const std::map<App::ACTION, App::ActionFunction> _actionsBoundings;
 
 private:
     App(const App&) noexcept = delete;
