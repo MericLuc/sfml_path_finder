@@ -1,6 +1,6 @@
 {
 	"bindings": {
-		"clean": "Space",
+		"clear": "Space",
 		"analyze": "Enter",
 		"stop": "Escape"
 	},
@@ -22,7 +22,7 @@
 			"selected": {}
 		}
 	},
-	"path-finding": {
+	"analyzer": {
 		"heuristic": "euclidian",
 		"params": {}
 	}

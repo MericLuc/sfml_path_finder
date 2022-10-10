@@ -14,6 +14,9 @@
 #include <string>
 #include <string_view>
 
+// Project's headers
+#include <grid.hpp>
+
 namespace sf {
 class RenderWindow;
 class RectangleShape;
@@ -24,12 +27,7 @@ namespace JSON {
 class Object;
 }
 
-namespace ui {
-class Grid;
-class Cell;
-}
-
-namespace AStar {
+namespace astar {
 class Impl;
 }
 
@@ -57,17 +55,18 @@ public:
     std::string what(void) const noexcept { return _what; }
 
 protected:
-    void _clean(void) noexcept;
+    void _clear(void) noexcept;
     void _analyze(void) noexcept;
     void _stop(void) noexcept;
 
     bool _initGraphics(const JSON::Object&) noexcept;
     bool _initBindings(const JSON::Object&) noexcept;
+    bool _initAnalyzer(const JSON::Object&) noexcept;
 
 protected:
     std::unique_ptr<sf::RenderWindow> _window;
     std::unique_ptr<ui::Grid>         _grid;
-    std::unique_ptr<AStar::Impl>      _algo;
+    std::unique_ptr<astar::Impl>      _analyzer;
 
     ui::Cell* _cell_start{ nullptr };
     ui::Cell* _cell_end{ nullptr };

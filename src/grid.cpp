@@ -16,6 +16,48 @@ using namespace sf;
 using namespace ui;
 
 /*****************************************************************************/
+ICell::ICell(uint x, uint y) noexcept
+  : _x{ x }
+  , _y{ y }
+{}
+
+/*****************************************************************************/
+PathCell::PathCell(uint x, uint y, PathCell* parent)
+  : ICell(x, y)
+  , _parent{ parent }
+{}
+
+/*****************************************************************************/
+void
+PathCell::clean(void) noexcept
+{
+    ICell::clean();
+    _G = _H = 0;
+    _parent = nullptr;
+}
+
+/*****************************************************************************/
+void
+PathCell::clear(void) noexcept
+{
+    ICell::clear();
+    _G = _H = 0;
+    _parent = nullptr;
+}
+
+/*****************************************************************************/
+uint
+PathCell::getScore() const noexcept
+{
+    return _G + _H;
+}
+
+/*****************************************************************************/
+Cell::Cell(uint x, uint y) noexcept
+  : PathCell(x, y)
+{}
+
+/*****************************************************************************/
 void
 Cell::update(void) noexcept
 {
@@ -29,11 +71,9 @@ Cell::update(void) noexcept
 
     if (_state & (START_CELL | END_CELL))
         setFillColor(Color(234, 24, 24));
-
-    if (_state & WALL)
+    else if (_state & WALL)
         setFillColor(Color::Black);
-
-    if (_state & PATH)
+    else if (_state & PATH)
         setFillColor(Color(32, 32, 228));
 
     if (_state & SELECTED) {
@@ -43,28 +83,9 @@ Cell::update(void) noexcept
 }
 
 /*****************************************************************************/
-Grid::Grid(size_t width, size_t height) noexcept
-  : _width{ width }
-  , _height{ height }
-  , _grid{ _height * _width, Cell() }
+Grid::Grid() noexcept
+  : Graph<ui::Cell>()
 {}
-
-/*****************************************************************************/
-void
-Grid::clean(void) noexcept
-{
-    for (auto& cell : _grid)
-        cell.setState(Cell::EMPTY);
-}
-
-/*****************************************************************************/
-void
-Grid::resize(size_t width, size_t height) noexcept
-{
-    _width = width;
-    _height = height;
-    _grid = std::vector<Cell>(_width * _height, Cell());
-}
 
 /*****************************************************************************/
 void

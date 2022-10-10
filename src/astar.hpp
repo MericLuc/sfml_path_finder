@@ -7,54 +7,52 @@
 #ifndef SRC_ASTAR_HPP
 #define SRC_ASTAR_HPP
 
+// Standard headers
 #include <functional>
 #include <list>
 #include <set>
+#include <stack>
+
+// Project's headers
+#include <grid.hpp>
 
 namespace JSON {
 class Object;
 }
 
-class Graph;
-class Node;
+namespace astar {
 
-namespace AStar {
-struct coords
+struct coord
 {
-    int x, y;
-
-    bool operator==(const coords&) noexcept;
+    int          x, y;
+    bool         operator==(const coord& o) noexcept { return o.x == x && o.y == y; }
+    friend coord operator+(const coord& lhs, const coord& rhs) noexcept
+    {
+        return { lhs.x + rhs.x, lhs.y + rhs.y };
+    }
 };
 
-using uint = unsigned int;
-using HeuristicFunction = std::function<uint(const coords&, const coords&)>;
+using HeuristicFunction = std::function<uint(PathCell*, PathCell*)>;
 
-using NodesList = std::list<Node*>;
-using NodesArr = std::vector<Node*>;
+using CellsStack = std::stack<PathCell*>;
+using CellsList = std::list<PathCell*>;
+using CellsArr = std::vector<PathCell*>;
+using CellsSet = std::set<PathCell*>;
 
-struct Node
-{
-    uint   G, H;
-    coords coordinates;
-    Node*  parent;
-
-    Node(coords coord_, Node* parent_ = nullptr);
-    uint getScore() const noexcept;
-};
-
-class Generator
+class Impl
 {
 public:
-    Generator();
+    Impl() noexcept;
+    virtual ~Impl() noexcept = default;
+
     [[maybe_unused]] virtual bool configure(const JSON::Object&) noexcept;
-    virtual NodesList             run(Graph*) noexcept;
+    [[maybe_unused]] virtual bool run(ui::Grid*, PathCell* start, PathCell* end) noexcept;
 
 protected:
-    bool _eligible(Node*) noexcept;
+    bool _eligible(PathCell*) noexcept;
 
 private:
-    Graph*   _world{ nullptr };
-    NodesArr _walls{};
+    ui::Grid* _world{ nullptr };
 
     HeuristicFunction _heuristic;
     uint              _dirs;
@@ -63,12 +61,12 @@ private:
 class Heuristic
 {
 public:
-    static uint manhattan(const coords&, const coords&) noexcept;
-    static uint euclidean(const coords&, const coords&) noexcept;
-    static uint octagonal(const coords&, const coords&) noexcept;
+    static uint manhattan(PathCell*, PathCell*) noexcept;
+    static uint euclidean(PathCell*, PathCell*) noexcept;
+    static uint octagonal(PathCell*, PathCell*) noexcept;
 
 private:
-    static coords getDelta(const coords&, const coords&) noexcept;
+    static coord getDelta(PathCell*, PathCell*) noexcept;
 };
 }
 

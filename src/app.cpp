@@ -9,6 +9,7 @@
 
 // Project headers
 #include <app.hpp>
+#include <astar.hpp>
 #include <grid.hpp>
 #include <utils/Json.hpp>
 
@@ -24,6 +25,7 @@ constexpr int WINDOW_DEFAULT_HEIGHT{ 640 };
 constexpr int WINDOW_DEFAULT_WIDTH{ 640 };
 
 std::map<sf::Keyboard::Key, App::ACTION> _bindings;
+bool                                     need_cleaning{ false };
 
 /*****************************************************************************/
 App&
@@ -59,7 +61,7 @@ App::configure(const std::string_view& file) noexcept
     JSON::Object obj{ JSON::Object::fromFile(conf_path) };
     if (!json_test_struct(
           obj,
-          { { "bindings", 'o' }, { "graphics", 'o' }, { "grid", 'o' }, { "path-finding", 'o' } })) {
+          { { "bindings", 'o' }, { "graphics", 'o' }, { "grid", 'o' }, { "analyzer", 'o' } })) {
         _what = "Wrong format for configuration file";
         return false;
     }
@@ -68,6 +70,9 @@ App::configure(const std::string_view& file) noexcept
         return false;
 
     if (!_initBindings(obj["bindings"]))
+        return false;
+
+    if (!_initAnalyzer(obj["analyzer"]))
         return false;
 
     return true;
@@ -117,6 +122,10 @@ App::update(void) noexcept
                 }
             } break;
             case Event::MouseButtonPressed: {
+                if (need_cleaning) {
+                    _grid->clean();
+                    need_cleaning = false;
+                }
                 switch (event.mouseButton.button) {
                     case Mouse::Button::Left: {
                         locked_click = true;
@@ -186,7 +195,8 @@ App::App() noexcept
                                             PROG_NAME,
                                             Style::Default) }
   , _grid{ std::make_unique<Grid>() }
-  , _actionsBoundings{ { App::CLEAN, [this]() { _clean(); } },
+  , _analyzer{ std::make_unique<astar::Impl>() }
+  , _actionsBoundings{ { App::CLEAN, [this]() { _clear(); } },
                        { App::ANALYZE, [this]() { _analyze(); } },
                        { App::STOP, [this]() { _stop(); } } }
 {
@@ -204,10 +214,10 @@ App::~App() noexcept
 
 /*****************************************************************************/
 void
-App::_clean(void) noexcept
+App::_clear(void) noexcept
 {
-    // TODO
-    _grid->clean();
+    need_cleaning = false;
+    _grid->clear();
     _cell_start = nullptr;
     _cell_end = nullptr;
 }
@@ -216,14 +226,17 @@ App::_clean(void) noexcept
 void
 App::_analyze(void) noexcept
 {
-    // TODO
+    if (nullptr == _cell_start || nullptr == _cell_end)
+        return;
+    _grid->clean();
+    _analyzer->run(_grid.get(), _cell_start, _cell_end);
+    need_cleaning = true;
 }
 
 /*****************************************************************************/
 void
 App::_stop(void) noexcept
 {
-    // TODO
     _window->close();
 }
 
@@ -353,12 +366,12 @@ App::_initBindings(const JSON::Object& conf) noexcept
         { "Pause", sf::Keyboard::Key::Pause }
     };
 
-    if (!json_test_struct(conf, { { "clean", 's' }, { "analyze", 's' }, { "stop", 's' } })) {
+    if (!json_test_struct(conf, { { "clear", 's' }, { "analyze", 's' }, { "stop", 's' } })) {
         _what = "Cannot initialize 'bindings' : wrong format";
         return false;
     }
 
-    if (auto it{ _cvt.find(conf["clean"].asString()) }; std::end(_cvt) != it)
+    if (auto it{ _cvt.find(conf["clear"].asString()) }; std::end(_cvt) != it)
         _bindings[it->second] = CLEAN;
 
     if (auto it{ _cvt.find(conf["analyze"].asString()) }; std::end(_cvt) != it)
@@ -368,4 +381,11 @@ App::_initBindings(const JSON::Object& conf) noexcept
         _bindings[it->second] = STOP;
 
     return true;
+}
+
+/*****************************************************************************/
+bool
+App::_initAnalyzer(const JSON::Object& conf) noexcept
+{
+    return _analyzer->configure(conf);
 }
