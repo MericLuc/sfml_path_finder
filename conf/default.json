@@ -2,28 +2,20 @@
 	"bindings": {
 		"clear": "Space",
 		"analyze": "Enter",
-		"stop": "Escape"
+		"exit": "Escape",
+		"reload": "F5"
 	},
 	"graphics": {
 		"width": 750,
 		"height": 750,
-		"frame-rate": 200
+		"frame-rate": 60
 	},
 	"grid": {
-		"dimensions": {
-			"rows": 50,
-			"cols": 50 
-		},
-		"style": {
-			"empty": {},
-			"wall": {},
-			"start": {},
-			"end": {},
-			"selected": {}
-		}
+		"rows": 50,
+		"cols": 50 
 	},
 	"analyzer": {
-		"heuristic": "euclidian",
-		"params": {}
+		"heuristic": "manhattan",
+		"allow-diagonals": false  
 	}
-}
+} 

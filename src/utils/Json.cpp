@@ -24,25 +24,21 @@ json_test_struct(const JSON::Object& obj, const std::map<std::string, char>& tes
             case 's':
                 if (!obj[field].isString())
                     return false;
-
                 break;
             case 'o':
                 if (!obj[field].isObject())
                     return false;
-
                 break;
             case 'a':
                 if (!obj[field].isArray())
                     return false;
-
                 break;
             case 'i':
                 if (!obj[field].isInt())
                     return false;
-
                 break;
             default:
-                return false;
+                return true;
         }
     }
 

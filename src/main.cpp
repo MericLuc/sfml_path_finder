@@ -42,7 +42,6 @@ main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // TODO - Add frameRate
     while (app) {
         app.update();
         app.render();

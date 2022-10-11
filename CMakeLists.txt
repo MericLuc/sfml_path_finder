@@ -26,4 +26,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE -DPROG_NAME="${PROJECT_NAME}"
                                                    -DCMDLINE_CONF="-i" )
 
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-install (FILES conf/default.conf TYPE SYSCONF)
+install (DIRECTORY conf/ TYPE SYSCONF)

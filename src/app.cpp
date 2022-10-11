@@ -45,9 +45,9 @@ App::operator bool() noexcept
 bool
 App::configure(const std::string_view& file) noexcept
 {
-    fs::path conf_path{ file };
-
-    if (std::empty(file)) {
+    _conf_fileName = file;
+    fs::path conf_path{ _conf_fileName };
+    if (std::empty(_conf_fileName)) {
         _what = "Missing or empty file path";
         return false;
     }
@@ -57,7 +57,6 @@ App::configure(const std::string_view& file) noexcept
         return false;
     }
 
-    // TODO
     JSON::Object obj{ JSON::Object::fromFile(conf_path) };
     if (!json_test_struct(
           obj,
@@ -73,6 +72,9 @@ App::configure(const std::string_view& file) noexcept
         return false;
 
     if (!_initAnalyzer(obj["analyzer"]))
+        return false;
+
+    if (!_initGrid(obj["grid"]))
         return false;
 
     return true;
@@ -171,8 +173,9 @@ App::update(void) noexcept
                 }
             } break;
             case Event::KeyReleased: {
-                if (auto it{ _bindings.find(event.key.code) }; std::end(_bindings) != it)
+                if (auto it{ _bindings.find(event.key.code) }; std::end(_bindings) != it) {
                     _actionsBoundings.at(it->second)();
+                }
             } break;
             default:
                 break;
@@ -198,7 +201,8 @@ App::App() noexcept
   , _analyzer{ std::make_unique<astar::Impl>() }
   , _actionsBoundings{ { App::CLEAN, [this]() { _clear(); } },
                        { App::ANALYZE, [this]() { _analyze(); } },
-                       { App::STOP, [this]() { _stop(); } } }
+                       { App::EXIT, [this]() { _stop(); } },
+                       { App::RELOAD, [this]() { _reload(); } } }
 {
     View view;
     view.setSize(WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT);
@@ -241,6 +245,13 @@ App::_stop(void) noexcept
 }
 
 /*****************************************************************************/
+void
+App::_reload(void) noexcept
+{
+    configure(_conf_fileName);
+}
+
+/*****************************************************************************/
 bool
 App::_initGraphics(const JSON::Object& conf) noexcept
 {
@@ -249,6 +260,7 @@ App::_initGraphics(const JSON::Object& conf) noexcept
         return false;
     }
 
+    _window->setVerticalSyncEnabled(false);
     _window->setSize(sf::Vector2u(conf["width"].asInt(), conf["height"].asInt()));
     _window->setFramerateLimit(conf["frame-rate"].asInt());
 
@@ -366,7 +378,8 @@ App::_initBindings(const JSON::Object& conf) noexcept
         { "Pause", sf::Keyboard::Key::Pause }
     };
 
-    if (!json_test_struct(conf, { { "clear", 's' }, { "analyze", 's' }, { "stop", 's' } })) {
+    if (!json_test_struct(
+          conf, { { "clear", 's' }, { "analyze", 's' }, { "exit", 's' }, { "reload", 's' } })) {
         _what = "Cannot initialize 'bindings' : wrong format";
         return false;
     }
@@ -377,8 +390,11 @@ App::_initBindings(const JSON::Object& conf) noexcept
     if (auto it{ _cvt.find(conf["analyze"].asString()) }; std::end(_cvt) != it)
         _bindings[it->second] = ANALYZE;
 
-    if (auto it{ _cvt.find(conf["stop"].asString()) }; std::end(_cvt) != it)
-        _bindings[it->second] = STOP;
+    if (auto it{ _cvt.find(conf["exit"].asString()) }; std::end(_cvt) != it)
+        _bindings[it->second] = EXIT;
+
+    if (auto it{ _cvt.find(conf["reload"].asString()) }; std::end(_cvt) != it)
+        _bindings[it->second] = RELOAD;
 
     return true;
 }
@@ -387,5 +403,32 @@ App::_initBindings(const JSON::Object& conf) noexcept
 bool
 App::_initAnalyzer(const JSON::Object& conf) noexcept
 {
-    return _analyzer->configure(conf);
+    auto ret{ _analyzer->configure(conf) };
+
+    if (!ret)
+        _what = "Cannot initialize 'analyzer' : wrong format";
+
+    return ret;
+}
+
+/*****************************************************************************/
+bool
+App::_initGrid(const JSON::Object& conf) noexcept
+{
+    size_t rows = conf["rows"].asInt();
+    size_t cols = conf["cols"].asInt();
+
+    if (0 == rows || 0 == cols) {
+        _what = "Cannot initialize 'grid' : Invalid values for 'dimensions'";
+        return false;
+    }
+
+    if (_grid->getHeight() != rows || _grid->getWidth() != cols) {
+        _cell_cur = nullptr;
+        _cell_start = nullptr;
+        _cell_end = nullptr;
+        _grid->resize(cols, rows);
+    }
+
+    return true;
 }

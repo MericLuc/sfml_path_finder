@@ -12,7 +12,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <string_view>
 
 // Project's headers
 #include <grid.hpp>
@@ -39,7 +38,8 @@ public:
     {
         CLEAN,
         ANALYZE,
-        STOP
+        EXIT,
+        RELOAD
     } ACTION;
     using ActionFunction = std::function<void(void)>;
 
@@ -58,10 +58,12 @@ protected:
     void _clear(void) noexcept;
     void _analyze(void) noexcept;
     void _stop(void) noexcept;
+    void _reload(void) noexcept;
 
     bool _initGraphics(const JSON::Object&) noexcept;
     bool _initBindings(const JSON::Object&) noexcept;
     bool _initAnalyzer(const JSON::Object&) noexcept;
+    bool _initGrid(const JSON::Object& conf) noexcept;
 
 protected:
     std::unique_ptr<sf::RenderWindow> _window;
@@ -73,6 +75,7 @@ protected:
     ui::Cell* _cell_cur{ nullptr };
 
     std::string _what;
+    std::string _conf_fileName;
 
     const std::map<App::ACTION, App::ActionFunction> _actionsBoundings;
 

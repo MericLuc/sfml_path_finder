@@ -11,7 +11,6 @@
 #include <functional>
 #include <list>
 #include <set>
-#include <stack>
 
 // Project's headers
 #include <grid.hpp>
@@ -22,11 +21,16 @@ class Object;
 
 namespace astar {
 
+/*****************************************************************************/
 struct coord
 {
-    int          x, y;
-    bool         operator==(const coord& o) noexcept { return o.x == x && o.y == y; }
-    friend coord operator+(const coord& lhs, const coord& rhs) noexcept
+    int x, y;
+    constexpr coord(int x, int y)
+      : x{ x }
+      , y{ y }
+    {}
+    constexpr bool operator==(const coord& o) noexcept { return o.x == x && o.y == y; }
+    friend coord   operator+(const coord& lhs, const coord& rhs) noexcept
     {
         return { lhs.x + rhs.x, lhs.y + rhs.y };
     }
@@ -34,11 +38,10 @@ struct coord
 
 using HeuristicFunction = std::function<uint(PathCell*, PathCell*)>;
 
-using CellsStack = std::stack<PathCell*>;
 using CellsList = std::list<PathCell*>;
-using CellsArr = std::vector<PathCell*>;
 using CellsSet = std::set<PathCell*>;
 
+/*****************************************************************************/
 class Impl
 {
 public:
@@ -56,8 +59,11 @@ private:
 
     HeuristicFunction _heuristic;
     uint              _dirs;
+
+    static const std::vector<coord> DIRS;
 };
 
+/*****************************************************************************/
 class Heuristic
 {
 public:

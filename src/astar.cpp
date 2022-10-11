@@ -10,11 +10,15 @@
 
 // Project's headers
 #include <astar.hpp>
+#include <utils/Json.hpp>
+
+// External headers
+#include <JSON.hpp>
 
 namespace astar {
 
-const std::vector<coord> DIRS{ { 0, 1 },   { 1, 0 }, { 0, -1 }, { -1, 0 },
-                               { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
+const std::vector<coord> Impl::DIRS{ { 0, 1 },   { 1, 0 }, { 0, -1 }, { -1, 0 },
+                                     { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
 
 /*****************************************************************************/
 Impl::Impl() noexcept
@@ -24,10 +28,35 @@ Impl::Impl() noexcept
 
 /*****************************************************************************/
 bool
-Impl::configure(const JSON::Object&) noexcept
+Impl::configure(const JSON::Object& conf) noexcept
 {
-    // TODO
+    if (!json_test_struct(conf, { { "heuristic", 's' }, { "allow-diagonals", 'b' } }))
+        goto error;
+
+    {
+        std::string heuristic_name{ conf["heuristic"].asString() };
+        if (!heuristic_name.compare("euclidean")) {
+            _heuristic =
+              std::bind(&Heuristic::euclidean, std::placeholders::_1, std::placeholders::_2);
+        } else if (!heuristic_name.compare("manhattan")) {
+            _heuristic =
+              std::bind(&Heuristic::manhattan, std::placeholders::_1, std::placeholders::_2);
+        } else if (!heuristic_name.compare("octogonal")) {
+            _heuristic =
+              std::bind(&Heuristic::octagonal, std::placeholders::_1, std::placeholders::_2);
+        } else {
+            goto error;
+        }
+
+        _dirs = (conf["allow-diagonals"].asBoolean()) ? 8 : 4;
+    }
     return true;
+
+error:
+    _dirs = 4;
+    if (_heuristic)
+        _heuristic = {};
+    return false;
 }
 
 /*****************************************************************************/
@@ -74,6 +103,9 @@ Impl::run(ui::Grid* world, PathCell* start, PathCell* end) noexcept
             }
         }
     }
+
+    if (cur != end)
+        return false;
 
     while (nullptr != cur) {
         cur->addState(ICell::PATH);
