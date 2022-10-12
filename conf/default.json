@@ -11,8 +11,8 @@
 		"frame-rate": 60
 	},
 	"grid": {
-		"rows": 50,
-		"cols": 50 
+		"rows": 25,
+		"cols": 25
 	},
 	"analyzer": {
 		"heuristic": "manhattan",
