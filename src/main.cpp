@@ -22,8 +22,6 @@ help(void)
               << "\n\t" << CMDLINE_CONF << " filename : Set configuration file\n\n";
 }
 
-static const std::string default_conf{ "/etc/" PROG_NAME };
-
 /*****************************************************************************/
 int
 main(int argc, char* argv[])
@@ -37,7 +35,7 @@ main(int argc, char* argv[])
     }
 
     if (!app.configure(parser->cmdOptionExists(CMDLINE_CONF) ? parser->getCmdOption(CMDLINE_CONF)
-                                                             : default_conf)) {
+                                                             : DEFAULT_CONF)) {
         std::cerr << app.what() << '\n';
         return EXIT_FAILURE;
     }

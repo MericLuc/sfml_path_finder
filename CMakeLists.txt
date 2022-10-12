@@ -13,6 +13,10 @@ endif()
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 file(GLOB_RECURSE HEADER_FILES src/*.hpp)
 
+set (INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME})
+set (CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ)
+
 add_subdirectory          (3rd/minijson EXCLUDE_FROM_ALL)
 add_executable            (${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 
@@ -23,7 +27,9 @@ target_compile_options    (${PROJECT_NAME} PRIVATE -O3 -Werror -Wall -Wextra -pe
 target_compile_features   (${PROJECT_NAME} PRIVATE cxx_std_17)
 target_compile_definitions(${PROJECT_NAME} PRIVATE -DPROG_NAME="${PROJECT_NAME}"
                                                    -DCMDLINE_HELP="-h"
-                                                   -DCMDLINE_CONF="-i" )
+                                                   -DCMDLINE_CONF="-i"
+                                                   -DDEFAULT_CONF="${INSTALL_DIR}/default.json")
 
-install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
-install (DIRECTORY conf/ TYPE SYSCONF)
+install (DIRECTORY DESTINATION ${INSTALL_DIR})
+install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${INSTALL_DIR})
+install (DIRECTORY conf/ DESTINATION ${INSTALL_DIR})
