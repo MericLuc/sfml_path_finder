@@ -1,4 +1,5 @@
-# path_finder
+# path_finder ![Language](https://img.shields.io/badge/language-C++17-orange.svg) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE.md)
+A simple templated binary search tree implementation
 **:star2: A-star Path-finding application :star2:**
 
 ![example](imgs/example.gif)
