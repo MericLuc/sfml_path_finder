@@ -3,6 +3,24 @@ project (path_finder)
 
 set(BRIEF "Dummy A* program to test SFML")
 
+function(submodule_update submodule args)
+find_package(Git REQUIRED)
+
+if(NOT EXISTS ${submodule}/CMakeLists.txt)
+    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive -- ${submodule}
+                    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                    RESULT_VARIABLE STATUS
+                    ERROR_VARIABLE UPDATE_ERR)
+
+   if ( STATUS AND NOT STATUS EQUAL 0 )
+       message(FATAL_ERROR "Unable to update required submodule '${submodule}'.
+           What : '${UPDATE_ERR}'")
+   endif()
+endif()
+
+add_subdirectory(${submodule} ${args})
+endfunction(submodule_update)
+
 find_package(SFML COMPONENTS graphics window system)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -17,7 +35,7 @@ set (INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME})
 set (CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
     OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ)
 
-add_subdirectory          (3rd/minijson EXCLUDE_FROM_ALL)
+submodule_update          (3rd/minijson EXCLUDE_FROM_ALL)
 add_executable            (${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 
 target_link_libraries     (${PROJECT_NAME} PRIVATE sfml-graphics sfml-window miniJSON)
