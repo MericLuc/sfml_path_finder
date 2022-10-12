@@ -1,3 +1,3 @@
 [submodule "3rd/minijson"]
 	path = 3rd/minijson
-	url = git@github.com:MericLuc/minijson.git
+	url = ../minijson.git
