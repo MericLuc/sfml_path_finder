@@ -22,6 +22,54 @@ ICell::ICell(uint x, uint y) noexcept
 {}
 
 /*****************************************************************************/
+void
+ICell::clear(void) noexcept
+{
+    if (EMPTY != _state)
+        _changed = true;
+    _state = EMPTY;
+}
+
+/*****************************************************************************/
+void
+ICell::clean(void) noexcept
+{
+    if (_state & PATH)
+        _changed = true;
+    _state &= ~PATH;
+}
+
+/*****************************************************************************/
+void
+ICell::setState(int st) noexcept
+{
+    if (st != _state) {
+        _state = st;
+        _changed = true;
+    }
+}
+
+/*****************************************************************************/
+void
+ICell::addState(State st) noexcept
+{
+    if (!(_state & st)) {
+        _state |= st;
+        _changed = true;
+    }
+}
+
+/*****************************************************************************/
+void
+ICell::remState(State st) noexcept
+{
+    if (_state & st) {
+        _state &= ~st;
+        _changed = true;
+    }
+}
+
+/*****************************************************************************/
 PathCell::PathCell(uint x, uint y, PathCell* parent)
   : ICell(x, y)
   , _parent{ parent }
@@ -61,6 +109,9 @@ Cell::Cell(uint x, uint y) noexcept
 void
 Cell::update(void) noexcept
 {
+    if (!_changed)
+        return;
+
     setOutlineColor(Color::Black);
     setOutlineThickness(-1.f);
 
@@ -80,6 +131,8 @@ Cell::update(void) noexcept
         setOutlineColor(Color::Green);
         setOutlineThickness(-3.f);
     }
+
+    _changed = false;
 }
 
 /*****************************************************************************/

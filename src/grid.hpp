@@ -32,21 +32,22 @@ public:
     ICell(uint, uint) noexcept;
     virtual ~ICell() noexcept = default;
 
-    virtual void clear(void) noexcept { _state = EMPTY; }
-    virtual void clean(void) noexcept { _state &= ~PATH; }
+    virtual void clear(void) noexcept;
+    virtual void clean(void) noexcept;
 
     auto x(void) const noexcept { return _x; }
     auto y(void) const noexcept { return _y; }
 
     bool hasState(int st) const noexcept { return _state & st; }
-    auto getState(void) const noexcept { return _state; }
-    auto setState(int st) noexcept { _state = st; }
-    auto addState(State st) noexcept { _state |= st; }
-    auto remState(State st) noexcept { _state &= ~st; }
+    int  getState(void) const noexcept { return _state; }
+    void setState(int st) noexcept;
+    void addState(State st) noexcept;
+    void remState(State st) noexcept;
 
 protected:
     uint _x, _y;
     int  _state{ EMPTY };
+    bool _changed{ true };
 };
 
 /*****************************************************************************/
