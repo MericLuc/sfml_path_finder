@@ -26,6 +26,7 @@ constexpr int WINDOW_DEFAULT_WIDTH{ 640 };
 
 std::map<sf::Keyboard::Key, App::ACTION> _bindings;
 bool                                     need_cleaning{ false };
+bool                                     need_render{ false };
 
 /*****************************************************************************/
 App&
@@ -98,7 +99,7 @@ App::update(void) noexcept
             case Event::MouseEntered:
             case Event::MouseMoved: {
                 if (nullptr != _cell_cur)
-                    _cell_cur->remState(Cell::SELECTED);
+                    _cell_cur->remState(ICell::SELECTED);
 
                 auto mousePos{ Mouse::getPosition(*_window) };
 
@@ -109,17 +110,17 @@ App::update(void) noexcept
                     nullptr == _cell_cur)
                     break;
 
-                _cell_cur->addState(Cell::SELECTED);
+                _cell_cur->addState(ICell::SELECTED);
 
                 if (locked_click &&
-                    !(_cell_cur->getState() & (Cell::START_CELL | Cell::END_CELL))) {
-                    _cell_cur->addState(Cell::WALL);
+                    !(_cell_cur->getState() & (ICell::START_CELL | ICell::END_CELL))) {
+                    _cell_cur->addState(ICell::WALL);
                 }
 
             } break;
             case Event::MouseLeft: {
                 if (nullptr != _cell_cur) {
-                    _cell_cur->remState(Cell::SELECTED);
+                    _cell_cur->remState(ICell::SELECTED);
                     _cell_cur = nullptr;
                 }
             } break;
@@ -142,30 +143,30 @@ App::update(void) noexcept
                 switch (event.mouseButton.button) {
                     case Mouse::Button::Left: {
                         locked_click = false;
-                        if (!_cell_cur->hasState(Cell::START_CELL | Cell::END_CELL))
-                            _cell_cur->addState(Cell::WALL);
+                        if (!_cell_cur->hasState(ICell::START_CELL | ICell::END_CELL))
+                            _cell_cur->addState(ICell::WALL);
 
                     } break;
                     case Mouse::Button::Right: {
-                        if (_cell_cur->hasState(Cell::WALL))
+                        if (_cell_cur->hasState(ICell::WALL))
                             break;
 
                         if (_cell_cur == _cell_start) {
-                            _cell_cur->remState(Cell::START_CELL);
+                            _cell_cur->remState(ICell::START_CELL);
                             _cell_start = nullptr;
                         } else if (_cell_cur == _cell_end) {
-                            _cell_cur->remState(Cell::END_CELL);
+                            _cell_cur->remState(ICell::END_CELL);
                             _cell_end = nullptr;
                         } else if (nullptr == _cell_start) {
                             _cell_start = _cell_cur;
-                            _cell_start->addState(Cell::START_CELL);
+                            _cell_start->addState(ICell::START_CELL);
                         } else if (nullptr == _cell_end) {
                             _cell_end = _cell_cur;
-                            _cell_end->addState(Cell::END_CELL);
+                            _cell_end->addState(ICell::END_CELL);
                         } else {
-                            _cell_end->remState(Cell::END_CELL);
+                            _cell_end->remState(ICell::END_CELL);
                             _cell_end = _cell_cur;
-                            _cell_end->addState(Cell::END_CELL);
+                            _cell_end->addState(ICell::END_CELL);
                         }
                     } break;
                     default:
@@ -188,6 +189,15 @@ void
 App::render(void) noexcept
 {
     _window->clear();
+    /*
+    if (nullptr != _cell_cur) {
+        auto cursor{ sf::RectangleShape() };
+        cursor.setOutlineColor(Color::Green);
+        cursor.setOutlineThickness(-3.f);
+        _window->draw(cursor);
+    }
+    */
+
     _window->draw(*_grid);
     _window->display();
 }

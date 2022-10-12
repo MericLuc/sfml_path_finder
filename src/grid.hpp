@@ -32,22 +32,22 @@ public:
     ICell(uint, uint) noexcept;
     virtual ~ICell() noexcept = default;
 
-    virtual void clear(void) noexcept;
-    virtual void clean(void) noexcept;
+    [[maybe_unused]] virtual bool clear(void) noexcept;
+    [[maybe_unused]] virtual bool clean(void) noexcept;
 
     auto x(void) const noexcept { return _x; }
     auto y(void) const noexcept { return _y; }
 
     bool hasState(int st) const noexcept { return _state & st; }
     int  getState(void) const noexcept { return _state; }
-    void setState(int st) noexcept;
-    void addState(State st) noexcept;
-    void remState(State st) noexcept;
+
+    [[maybe_unused]] bool setState(int st) noexcept;
+    [[maybe_unused]] bool addState(State st) noexcept;
+    [[maybe_unused]] bool remState(State st) noexcept;
 
 protected:
     uint _x, _y;
     int  _state{ EMPTY };
-    bool _changed{ true };
 };
 
 /*****************************************************************************/
@@ -57,8 +57,8 @@ public:
     PathCell(uint, uint, PathCell* parent = nullptr);
     virtual ~PathCell() noexcept = default;
 
-    virtual void clear(void) noexcept override;
-    virtual void clean(void) noexcept override;
+    [[maybe_unused]] virtual bool clear(void) noexcept override;
+    [[maybe_unused]] virtual bool clean(void) noexcept override;
 
     uint getScore() const noexcept;
 
@@ -80,18 +80,22 @@ public:
 
     virtual ~Graph() noexcept = default;
 
-    void clear(void) noexcept
+    [[maybe_unused]] bool clear(void) noexcept
     {
+        bool ret{ false };
         for (auto& cell : _grid)
-            cell.clear();
+            ret |= cell.clear();
+        return ret;
     }
-    void clean(void) noexcept
+    [[maybe_unused]] bool clean(void) noexcept
     {
+        bool ret{ false };
         for (auto& cell : _grid)
-            cell.clean();
+            ret |= cell.clean();
+        return ret;
     }
 
-    void resize(size_t width, size_t height) noexcept
+    virtual void resize(size_t width, size_t height) noexcept
     {
         _width = width;
         _height = height;
@@ -119,31 +123,28 @@ protected:
 namespace ui {
 
 /*****************************************************************************/
-class Cell
-  : public PathCell
-  , public sf::RectangleShape
-{
-    friend class Grid;
-
-public:
-    Cell(uint, uint) noexcept;
-    virtual ~Cell() noexcept = default;
-
-protected:
-    void update(void) noexcept;
-};
-
-/*****************************************************************************/
 class Grid
-  : public Graph<ui::Cell>
+  : public Graph<PathCell>
   , public sf::Drawable
 {
 public:
     Grid() noexcept;
     virtual ~Grid() noexcept = default;
 
+    virtual void resize(size_t width, size_t height) noexcept override
+    {
+        Graph::resize(width, height);
+        _vertexes = std::vector<sf::Vertex>(_width * _height * 4, sf::Vertex());
+    }
+
 protected:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+
+    virtual void updateCellStyle(uint i, uint j) const noexcept;
+    virtual void updateCell(uint i, uint j, sf::Vector2f pos, sf::Vector2f size) const noexcept;
+
+protected:
+    mutable std::vector<sf::Vertex> _vertexes;
 };
 
 }

@@ -7,7 +7,6 @@
 // Standard headers
 #include <iostream>
 #include <stdlib.h>
-#include <thread>
 
 // Project headers
 #include <app.hpp>
@@ -44,7 +43,6 @@ main(int argc, char* argv[])
     while (app) {
         app.update();
         app.render();
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
 
     return EXIT_SUCCESS;

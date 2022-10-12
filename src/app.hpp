@@ -70,9 +70,9 @@ protected:
     std::unique_ptr<ui::Grid>         _grid;
     std::unique_ptr<astar::Impl>      _analyzer;
 
-    ui::Cell* _cell_start{ nullptr };
-    ui::Cell* _cell_end{ nullptr };
-    ui::Cell* _cell_cur{ nullptr };
+    PathCell* _cell_start{ nullptr };
+    PathCell* _cell_end{ nullptr };
+    PathCell* _cell_cur{ nullptr };
 
     std::string _what;
     std::string _conf_fileName;
