@@ -14,7 +14,9 @@
 #include <string>
 
 // Project's headers
-#include <grid.hpp>
+#include <algo/astar.hpp>
+#include <env/graph.hpp>
+#include <graphics/grid.hpp>
 
 namespace sf {
 class RenderWindow;
@@ -26,9 +28,8 @@ namespace JSON {
 class Object;
 }
 
-namespace astar {
-class Impl;
-}
+template<typename T>
+using UPTR = std::unique_ptr<T>;
 
 /*****************************************************************************/
 class App
@@ -66,18 +67,19 @@ protected:
     bool _initGrid(const JSON::Object& conf) noexcept;
 
 protected:
-    std::unique_ptr<sf::RenderWindow> _window;
-    std::unique_ptr<ui::Grid>         _grid;
-    std::unique_ptr<astar::Impl>      _analyzer;
+    UPTR<sf::RenderWindow>               _window;
+    UPTR<env::Graph<env::AStarCell>>     _graph;
+    UPTR<graphics::Grid<env::AStarCell>> _grid;
+    UPTR<astar::Impl<env::AStarCell>>    _analyzer;
 
-    PathCell* _cell_start{ nullptr };
-    PathCell* _cell_end{ nullptr };
-    PathCell* _cell_cur{ nullptr };
+    env::AStarCell* _cell_start{ nullptr };
+    env::AStarCell* _cell_end{ nullptr };
+    env::AStarCell* _cell_cur{ nullptr };
 
     std::string _what;
     std::string _conf_fileName;
 
-    const std::map<App::ACTION, App::ActionFunction> _actionsBoundings;
+    const std::map<ACTION, ActionFunction> _actionsBoundings;
 
 private:
     App(const App&) noexcept = delete;

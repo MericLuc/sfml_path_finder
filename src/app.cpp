@@ -9,8 +9,6 @@
 
 // Project headers
 #include <app.hpp>
-#include <astar.hpp>
-#include <grid.hpp>
 #include <utils/Json.hpp>
 
 // External libs
@@ -18,7 +16,9 @@
 #include <SFML/Graphics.hpp>
 
 using namespace sf;
-using namespace ui;
+using namespace env;
+using namespace graphics;
+
 namespace fs = std::filesystem;
 
 constexpr int WINDOW_DEFAULT_HEIGHT{ 640 };
@@ -26,7 +26,6 @@ constexpr int WINDOW_DEFAULT_WIDTH{ 640 };
 
 std::map<sf::Keyboard::Key, App::ACTION> _bindings;
 bool                                     need_cleaning{ false };
-bool                                     need_render{ false };
 
 /*****************************************************************************/
 App&
@@ -98,19 +97,14 @@ App::update(void) noexcept
             } break;
             case Event::MouseEntered:
             case Event::MouseMoved: {
-                if (nullptr != _cell_cur)
-                    _cell_cur->remState(ICell::SELECTED);
-
                 auto mousePos{ Mouse::getPosition(*_window) };
 
-                if (_cell_cur = _grid->cell(
-                      mousePos.x / (static_cast<double>(_window->getSize().x) / _grid->getWidth()),
+                if (_cell_cur = _graph->cell(
+                      mousePos.x / (static_cast<double>(_window->getSize().x) / _graph->getWidth()),
                       mousePos.y /
-                        (static_cast<double>(_window->getSize().y) / _grid->getHeight()));
+                        (static_cast<double>(_window->getSize().y) / _graph->getHeight()));
                     nullptr == _cell_cur)
                     break;
-
-                _cell_cur->addState(ICell::SELECTED);
 
                 if (locked_click &&
                     !(_cell_cur->getState() & (ICell::START_CELL | ICell::END_CELL))) {
@@ -119,14 +113,11 @@ App::update(void) noexcept
 
             } break;
             case Event::MouseLeft: {
-                if (nullptr != _cell_cur) {
-                    _cell_cur->remState(ICell::SELECTED);
-                    _cell_cur = nullptr;
-                }
+                _cell_cur = nullptr;
             } break;
             case Event::MouseButtonPressed: {
                 if (need_cleaning) {
-                    _grid->clean();
+                    _graph->clean();
                     need_cleaning = false;
                 }
                 switch (event.mouseButton.button) {
@@ -181,6 +172,7 @@ App::update(void) noexcept
             default:
                 break;
         }
+        _grid->setCursor(_cell_cur);
     }
 }
 
@@ -189,15 +181,6 @@ void
 App::render(void) noexcept
 {
     _window->clear();
-    /*
-    if (nullptr != _cell_cur) {
-        auto cursor{ sf::RectangleShape() };
-        cursor.setOutlineColor(Color::Green);
-        cursor.setOutlineThickness(-3.f);
-        _window->draw(cursor);
-    }
-    */
-
     _window->draw(*_grid);
     _window->display();
 }
@@ -207,8 +190,9 @@ App::App() noexcept
   : _window{ std::make_unique<RenderWindow>(VideoMode(WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT),
                                             PROG_NAME,
                                             Style::Default) }
-  , _grid{ std::make_unique<Grid>() }
-  , _analyzer{ std::make_unique<astar::Impl>() }
+  , _graph{ std::make_unique<Graph<AStarCell>>() }
+  , _grid{ std::make_unique<Grid<AStarCell>>(_graph.get()) }
+  , _analyzer{ std::make_unique<astar::Impl<AStarCell>>() }
   , _actionsBoundings{ { App::CLEAN, [this]() { _clear(); } },
                        { App::ANALYZE, [this]() { _analyze(); } },
                        { App::EXIT, [this]() { _stop(); } },
@@ -231,7 +215,7 @@ void
 App::_clear(void) noexcept
 {
     need_cleaning = false;
-    _grid->clear();
+    _graph->clear();
     _cell_start = nullptr;
     _cell_end = nullptr;
 }
@@ -242,8 +226,8 @@ App::_analyze(void) noexcept
 {
     if (nullptr == _cell_start || nullptr == _cell_end)
         return;
-    _grid->clean();
-    _analyzer->run(_grid.get(), _cell_start, _cell_end);
+    _graph->clean();
+    _analyzer->run(_graph.get(), _cell_start, _cell_end);
     need_cleaning = true;
 }
 
@@ -433,11 +417,12 @@ App::_initGrid(const JSON::Object& conf) noexcept
         return false;
     }
 
-    if (_grid->getHeight() != rows || _grid->getWidth() != cols) {
+    if (_graph->getHeight() != rows || _graph->getWidth() != cols) {
         _cell_cur = nullptr;
         _cell_start = nullptr;
         _cell_end = nullptr;
-        _grid->resize(cols, rows);
+        _graph->resize(cols, rows);
+        _grid->update();
     }
 
     return true;

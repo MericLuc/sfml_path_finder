@@ -9,26 +9,34 @@
 #include <math.h>
 
 // Project's headers
-#include <astar.hpp>
+#include "astar.hpp"
 #include <utils/Json.hpp>
 
 // External headers
 #include <JSON.hpp>
 
+using namespace env;
+
 namespace astar {
 
-const std::vector<coord> Impl::DIRS{ { 0, 1 },   { 1, 0 }, { 0, -1 }, { -1, 0 },
-                                     { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
+using CellsList = std::list<ICell*>;
+using CellsSet = std::set<ICell*>;
+
+template<typename T>
+const std::vector<std::pair<int, int>> Impl<T>::DIRS{ { 0, 1 },   { 1, 0 }, { 0, -1 }, { -1, 0 },
+                                                      { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
 
 /*****************************************************************************/
-Impl::Impl() noexcept
+template<typename T>
+Impl<T>::Impl() noexcept
   : _heuristic{ std::bind(&Heuristic::manhattan, std::placeholders::_1, std::placeholders::_2) }
   , _dirs{ 8 }
 {}
 
 /*****************************************************************************/
+template<typename T>
 bool
-Impl::configure(const JSON::Object& conf) noexcept
+Impl<T>::configure(const JSON::Object& conf) noexcept
 {
     if (!json_test_struct(conf, { { "heuristic", 's' }, { "allow-diagonals", 'b' } }))
         goto error;
@@ -60,24 +68,25 @@ error:
 }
 
 /*****************************************************************************/
+template<typename T>
 bool
-Impl::run(ui::Grid* world, PathCell* start, PathCell* end) noexcept
+Impl<T>::run(Graph<T>* world, T* start, T* end) noexcept
 {
     _world = world;
     if (nullptr == _world || nullptr == start || nullptr == end)
         return false;
 
-    PathCell* cur{ nullptr };
-    CellsList open;
-    CellsSet  closed;
+    AStarCell* cur{ nullptr };
+    CellsList  open;
+    CellsSet   closed;
 
     open.push_back(start);
 
     while (!std::empty(open)) {
-        auto it{ std::max_element(std::begin(open), std::end(open), [](PathCell* a, PathCell* b) {
-            return a->getScore() >= b->getScore();
+        auto it{ std::max_element(std::begin(open), std::end(open), [](auto* a, auto* b) {
+            return static_cast<AStarCell*>(a)->getScore() >= static_cast<AStarCell*>(b)->getScore();
         }) };
-        cur = *it;
+        cur = static_cast<AStarCell*>(*it);
 
         if (end == cur)
             break;
@@ -86,7 +95,7 @@ Impl::run(ui::Grid* world, PathCell* start, PathCell* end) noexcept
         open.erase(it);
 
         for (uint i{ 0 }; i < _dirs; ++i) {
-            auto neigh{ _world->cell(cur->x() + DIRS[i].x, cur->y() + DIRS[i].y) };
+            auto neigh{ _world->cell(cur->x() + DIRS[i].first, cur->y() + DIRS[i].second) };
             if (!_eligible(neigh) || closed.count(neigh))
                 continue;
 
@@ -116,8 +125,9 @@ Impl::run(ui::Grid* world, PathCell* start, PathCell* end) noexcept
 }
 
 /*****************************************************************************/
+template<typename T>
 bool
-Impl::_eligible(PathCell* cell) noexcept
+Impl<T>::_eligible(T* cell) noexcept
 {
     if (nullptr == cell)
         return false;
@@ -126,8 +136,8 @@ Impl::_eligible(PathCell* cell) noexcept
 }
 
 /*****************************************************************************/
-coord
-Heuristic::getDelta(PathCell* s, PathCell* d) noexcept
+std::pair<int, int>
+Heuristic::getDelta(AStarCell* s, AStarCell* d) noexcept
 {
     return { abs(static_cast<int>(s->x()) - static_cast<int>(d->x())),
              abs(static_cast<int>(s->y()) - static_cast<int>(d->y())) };
@@ -135,26 +145,27 @@ Heuristic::getDelta(PathCell* s, PathCell* d) noexcept
 
 /*****************************************************************************/
 uint
-Heuristic::manhattan(PathCell* s, PathCell* d) noexcept
+Heuristic::manhattan(AStarCell* s, AStarCell* d) noexcept
 {
     auto delta{ getDelta(s, d) };
-    return static_cast<uint>(10 * (delta.x + delta.y));
+    return static_cast<uint>(10 * (delta.first + delta.second));
 }
 
 /*****************************************************************************/
 uint
-Heuristic::euclidean(PathCell* s, PathCell* d) noexcept
+Heuristic::euclidean(AStarCell* s, AStarCell* d) noexcept
 {
     auto delta{ getDelta(s, d) };
-    return static_cast<uint>(10 * sqrt(pow(delta.x, 2) + pow(delta.y, 2)));
+    return static_cast<uint>(10 * sqrt(pow(delta.first, 2) + pow(delta.second, 2)));
 }
 
 /*****************************************************************************/
 uint
-astar::Heuristic::octagonal(PathCell* s, PathCell* d) noexcept
+astar::Heuristic::octagonal(AStarCell* s, AStarCell* d) noexcept
 {
     auto delta{ getDelta(s, d) };
-    return 10 * (delta.x + delta.y) + (-6) * std::min(delta.x, delta.y);
+    return 10 * (delta.first + delta.second) + (-6) * std::min(delta.first, delta.second);
 }
 
+template class Impl<AStarCell>;
 }
