@@ -1,8 +1,6 @@
 # path_finder
 **:star2: A-star Path-finding application :star2:**
 
-[[_TOC_]]
-
 ![example](imgs/example.gif)
 
 # Controls
