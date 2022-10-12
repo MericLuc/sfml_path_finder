@@ -102,20 +102,27 @@ cd ~/git
 git clone https://github.com/MericLuc/sfml_path_finder.git
 ```
 
-2. Create a build folder
+2. Install dependencies
+
+```
+sudo apt-get update
+sudo apt-get install -y libsfml-dev
+```
+
+3. Create a build folder
 
 ```
 mkdir ~/build && cd ~/build
 ```
 
-3. Build the project
+4. Build the project
 
 ```
 cmake -S ~/git/path_finder .
 make
 ```
 
-4. Run 
+5. Run 
 
 ```
 ~/build/path_finder -i ~/git/path_finder/conf/default.json
