@@ -27,9 +27,8 @@ public:
     Grid(env::Graph<T>*) noexcept;
     virtual ~Grid() noexcept = default;
 
-    void setGraphe(env::Graph<T>*) noexcept;
+    void setGraph(env::Graph<T>*) noexcept;
     void setCursor(T*) noexcept;
-    void update() noexcept;
 
 protected:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -39,6 +38,7 @@ protected:
 
 protected:
     mutable std::vector<sf::Vertex> _vertexes;
+    mutable std::vector<sf::Vertex> _grid;
     env::Graph<T>*                  _graph{ nullptr };
     T*                              _cursor{ nullptr };
 };

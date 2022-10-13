@@ -21,17 +21,14 @@ namespace graphics {
 template<typename T>
 Grid<T>::Grid(Graph<T>* graph) noexcept
   : _graph{ graph }
-{
-    update();
-}
+{}
 
 /*****************************************************************************/
 template<typename T>
 void
-Grid<T>::setGraphe(Graph<T>* graph) noexcept
+Grid<T>::setGraph(Graph<T>* graph) noexcept
 {
     _graph = graph;
-    update();
 }
 
 /*****************************************************************************/
@@ -45,31 +42,39 @@ Grid<T>::setCursor(T* cursor) noexcept
 /*****************************************************************************/
 template<typename T>
 void
-Grid<T>::update() noexcept
-{
-    if (nullptr != _graph)
-        _vertexes =
-          std::vector<sf::Vertex>(_graph->getWidth() * _graph->getHeight() * 4, sf::Vertex());
-}
-
-/*****************************************************************************/
-template<typename T>
-void
 Grid<T>::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-    static double cell_width{ 0 };
-    static double cell_height{ 0 };
+    static Dims  graphSize{ 0, 0 };
+    static float cell_width{ 0 };
+    static float cell_height{ 0 };
 
-    bool       updt{ false };
-    const auto new_width{ target.getSize().x / static_cast<double>(_graph->getWidth()) };
-    const auto new_height{ target.getSize().y / static_cast<double>(_graph->getHeight()) };
+    auto     updt{ false };
+    Vector2f targetSize{ target.getSize() };
+
+    if (nullptr == _graph)
+        return;
+
+    // Test which updates are required
+    if (auto curSize{ _graph->getSize() }; curSize != graphSize) {
+        graphSize = curSize;
+
+        _vertexes.resize(_graph->getWidth() * _graph->getHeight() * 4);
+        _grid.resize(2 * (graphSize.first + graphSize.second), sf::Vertex({}, Color::Black));
+
+        updt = true;
+    }
+
+    const auto new_width{ targetSize.x / graphSize.first };
+    const auto new_height{ targetSize.y / graphSize.second };
 
     if (new_width != cell_width || new_height != cell_height) {
         cell_width = new_width;
         cell_height = new_height;
+
         updt = true;
     }
 
+    // Update and draw the cells
     for (uint i{ 0 }; i < _graph->getWidth(); ++i)
         for (uint j{ 0 }; j < _graph->getHeight(); ++j) {
             if (updt)
@@ -83,15 +88,22 @@ Grid<T>::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
     target.draw(_vertexes.data(), std::size(_vertexes), sf::Quads, states);
 
-    std::for_each(
-      std::begin(_vertexes), std::end(_vertexes), [](auto& v) { v.color = sf::Color::Black; });
+    // Update and draw the grid
+    if (updt) {
+        uint idx{ 0 };
+        for (uint i{ 0 }; i < _graph->getHeight(); ++i) {
+            _grid[idx++].position = { 0, cell_height * i };
+            _grid[idx++].position = { targetSize.x, cell_height * i };
+        }
+        for (uint i{ 0 }; i < _graph->getWidth(); ++i) {
+            _grid[idx++].position = { cell_width * i, 0 };
+            _grid[idx++].position = { cell_width * i, targetSize.y };
+        }
+    }
 
-    for (uint i{ 0 }; i < _graph->getHeight(); ++i)
-        target.draw(_vertexes.data() + 4 * _graph->getWidth() * i,
-                    4 * _graph->getWidth(),
-                    sf::LinesStrip,
-                    states);
+    target.draw(_grid.data(), std::size(_grid), sf::Lines, states);
 
+    // Update and draw the cursor
     if (nullptr != _cursor) {
         sf::RectangleShape cursor(Vector2f(cell_width, cell_height));
         cursor.setOutlineColor(Color::Green);

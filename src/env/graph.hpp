@@ -17,6 +17,8 @@ typedef unsigned int uint;
 
 namespace env {
 
+using Dims = std::pair<size_t, size_t>;
+
 /*****************************************************************************/
 class ICell
 {
@@ -109,6 +111,7 @@ public:
 
     auto getWidth(void) const noexcept { return _width; }
     auto getHeight(void) const noexcept { return _height; }
+    Dims getSize(void) const noexcept { return { _width, _height }; }
 
     T* cell(size_t i, size_t j) const noexcept
     {

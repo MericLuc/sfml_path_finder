@@ -205,10 +205,7 @@ App::App() noexcept
 }
 
 /*****************************************************************************/
-App::~App() noexcept
-{
-    // TODO
-}
+App::~App() noexcept {}
 
 /*****************************************************************************/
 void
@@ -422,7 +419,6 @@ App::_initGrid(const JSON::Object& conf) noexcept
         _cell_start = nullptr;
         _cell_end = nullptr;
         _graph->resize(cols, rows);
-        _grid->update();
     }
 
     return true;
