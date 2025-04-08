@@ -19,7 +19,7 @@ Not much to know :
 
 An example is provided in **conf/default.json**
 
-```
+```json
 {
     "bindings": {
         "clear": "Space",
@@ -100,44 +100,44 @@ Baically, here are the steps you might wanna do (debian example) to compile the 
 
 1. Clone the project 
 
-```
-cd ~/git
-git clone https://github.com/MericLuc/sfml_path_finder.git
+```bash
+[~] cd ~/git
+[~] git clone https://github.com/MericLuc/sfml_path_finder.git
 ```
 
 2. Install dependencies
 
-```
-sudo apt-get update
-sudo apt-get install -y libsfml-dev
+```bash
+[~] sudo apt-get update
+[~] sudo apt-get install -y libsfml-dev
 ```
 
 3. Create a build folder
 
-```
-mkdir ~/build && cd ~/build
+```bash
+[~] mkdir ~/build && cd ~/build
 ```
 
 4. Build the project
 
-```
-cmake -S ~/git/path_finder .
-make
+```bash
+[~] cmake -S ~/git/path_finder .
+[~] make
 ```
 
 5. Run 
 
-```
-~/build/path_finder -i ~/git/path_finder/conf/default.json
+```bash
+[~] ~/build/path_finder -i ~/git/path_finder/conf/default.json
 ```
 
 ## Install
 
 *path_finder* provide an **install** target.
 
-```
-cmake -S ~/git/path_finder -DCMAKE_PREFIX_INSTALL="/your/install/folder"
-make install
+```bash
+[~] cmake -S ~/git/path_finder -DCMAKE_PREFIX_INSTALL="/your/install/folder"
+[~] make install
 ```
 
 It will install the following files :
